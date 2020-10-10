@@ -96,6 +96,55 @@ The mean hour of the day at which Pink Lady Apples are ordered are generally ear
 
 # Problem 2
 
+## Load, tidy, and otherwise wrangle the data.
+```{r, warning=FALSE, message=FALSE}
+accel_df = read_csv("~/Desktop/Fall 2020/Data Science/accel_data.csv") %>%
+  janitor::clean_names() %>%
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "minutes",
+    names_prefix = "activity_",
+    values_to = "activity_count"
+    ) %>%
+  mutate(day_type = ifelse(day %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"), "Weekday", "Weekend")) %>%
+  mutate(
+    day = as.factor(day),
+    minutes = as.numeric(minutes),
+    day_type = as.factor(day_type),
+    day = forcats::fct_relevel(day,c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"))
+  ) 
+```
+
+After tidying the data, there are `r nrow(accel_df)` rows/observations and `r ncol(accel_df)` columns in the resulting dataset. The variables in the dataset include information on the week, day (day id, which day, and the type of day), and minute when the activity count measurement took place, as well as the measured outcome of activity counts in a short period. The variable day describes if the measurement was taken on Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, or Sunday; and the variable day_type describes if the measurement was taken on weekday or weekend.
+
+
+## Using the tidied dataset, aggregate accross minutes to create a total activity variable for each day, and create a table showing these totals.
+```{r}
+accel_df %>% 
+  group_by(week, day) %>% 
+  summarize(total_activity = sum(activity_count)) %>%
+  pivot_wider(
+    names_from = day,
+    values_from = total_activity
+  )
+```
+
+There is no exact trend observed from the table, as the patient had ups and downs in the activity count among days and weeks, which led to different trends that contradict with each other. Despite that the patient had low activity count on the Saturdays of week 4 and 5, we still need further analysis to get an observed trend. 
+
+
+## Make a single panel plot that shows the 24-hour activity time courses for each day.
+```{r}
+accel_df %>%
+ggplot(aes(x = minutes, y = activity_count, color = day)) + geom_line(aes(group = day), alpha = 0.5) + 
+    labs(
+      title = "24-hour Activity Count by Day",
+      x = "Minutes",
+      y = "Activity Count"
+    )
+```
+
+According to the graph, we can see that the patient is generally more active during the night around 8pm and during the morning/noon around 10am to 12pm. The patient has relatively low activity count during the approximate time range from 11pm to 6am, which makes sense because this is the sleeping time. There is no apparent difference among the activity count between days of the week, but there is a trend that demonstrates difference among the activity count between time of the day.
+
 
 
 
