@@ -1,0 +1,101 @@
+---
+title: "p8105_hw3_sl4658"
+author: "Simin Ling"
+date: "10/9/2020"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(p8105.datasets)
+
+knitr::opts_chunk$set(
+	fig.width = 6, 
+  fig.asp = .6,
+  out.width = "90%"
+)
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+```
+
+
+# Problem 1
+```{r}
+data("instacart")
+head(instacart)
+summary(instacart)
+```
+
+### Description of the instacart dataset 
+
+There are `r nrow(instacart)` observations in the instacart dataset, with `r nrow(instacart)` rows and `r ncol(instacart)` columns. Each observations are the level of items in orders by user, which correspond to order-related information for each product in each order placed by each user. 
+
+Some key variables are user/order related variables, including order id, user id, product id and name, count of product in each order, order date, reordered or no, aisle id and name, department and department id, and more. For example, an user (user id of 112108) placed an order (order id of 1) that included one Bulgarian Yogurt (product id of 49302) as a reordered item, in the dairy eggs department and yogurt aisle (department id of 16 and aisle id of 120).
+
+
+### Answers to the questions in Problem 1
+Problem 1a. 
+```{r}
+instacart %>%
+  count(aisle) %>%
+  arrange(desc(n))
+```
+There are 134 aisles in the dataset, and the fresh vegetables aisles are the most items ordered from with an observation count of 150609.
+
+
+Problem 1b.
+```{r}
+instacart %>%
+  count(aisle) %>%
+  filter(n > 10000) %>%
+  mutate(
+    aisle = factor(aisle),
+    aisle = fct_reorder(aisle, n)
+  ) %>%
+  ggplot(aes(x = aisle, y = n, color = aisle)) + geom_point(stat="identity",show.legend = F) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+As shown in the graph, the fresh vegetables and fresh fruits aisles are the ones that have most items sold. The aisles are listed from left to right in an ascending order of item sold.
+
+
+Problem 1c.
+```{r}
+instacart %>% 
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
+  group_by(aisle) %>% 
+  count(product_name) %>% 
+  mutate(rank = min_rank(desc(n))) %>%
+  filter(min_rank(desc(n)) < 4) %>% 
+  arrange(aisle, rank) %>%
+  knitr::kable()
+```
+The three most popular items in the baking ingredients aisle are light brown sugar (n=499), pure baking soda (n=387), and can sugar (n=336), in descending order.
+The three most popular items in the dog food care aisle are Snack Sticks Chicken & Rice Recipe Dog Treats (n=30), Organix Chicken & Brown Rice Recipe (n=28), and Small Dog Biscuits (n=26), in descending order.
+The three most popular items in the packaged vegetables fruits aisle are Organic Baby Spinach (n=9784), Organic Raspberries (n=5546), and Organic Blueberries (n=4966), in descending order.
+
+
+Problem 1d.
+```{r}
+instacart %>% 
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>%
+  group_by(product_name, order_dow) %>%
+  mutate(order_dow = recode(order_dow, `0`="Sun", `1`="Mon", `2`="Tue", `3`="Wed", `4`="Thur", `5`="Fri", `6`="Sat")) %>%
+  summarize(mean_hour = mean(order_hour_of_day)) %>% 
+  pivot_wider(
+    names_from = order_dow,
+    values_from = mean_hour
+  )
+```
+The mean hour of the day at which Pink Lady Apples are ordered are generally earlier than the mean hour of the day at which Coffee Ice Cream are ordered, except for Friday.
+
+
+# Problem 2
+
+
+
+
